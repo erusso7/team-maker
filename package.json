@@ -1,0 +1,25 @@
+{
+  "name": "team-maker",
+  "version": "1.0.1",
+  "description": "JS library to split a list of players into different teams",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "repository": "git@github.com:erusso7/team-maker.git",
+  "author": "Ezequiel Russo <ezequiel.rube@gmail.com>",
+  "license": "MIT",
+  "scripts": {
+    "test": "jest"
+  },
+  "prepublish": "tsc",
+  "dependencies": {
+    "object-hash": "^3.0.0"
+  },
+  "devDependencies": {
+    "@types/jest": "^29.0.3",
+    "@types/node": "^18.7.18",
+    "@types/object-hash": "^2.2.1",
+    "jest": "^29.0.3",
+    "ts-jest": "^29.0.1",
+    "typescript": "^4.8.3"
+  }
+}
