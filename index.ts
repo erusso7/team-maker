@@ -6,6 +6,7 @@ export enum Gender {
     male = 0,
     female = 1
 }
+
 export enum Position {
     attacker = 0,
     defender = 1
@@ -19,12 +20,28 @@ export interface Player {
 
 export const seed = (player: any, prime: number): number => parseInt(hash.MD5(player), 16) % prime
 
+const asc = (prime: number = DefaultPrime) => {
+    return (a: Player, b: Player) => {
+        return a.score - b.score || seed(a, prime) - seed(b, prime)
+    }
+}
+
 export const teams = (players: Player[], numTeams: number, prime: number = DefaultPrime) => {
+    const attackTeams = splitPlayers(players.filter(attackersFilter), numTeams, prime)
+    const defendTeams = splitPlayers(players.filter(defendersFilter), numTeams, prime)
+
+    let allTeams: Player[][] = []
+    for (let i = 0; i < numTeams; i++) {
+        allTeams.push(attackTeams[i].concat(defendTeams[numTeams - i - 1]))
+    }
+
+    return allTeams
+}
+
+const splitPlayers = (players: Player[], numTeams: number, prime: number = DefaultPrime) => {
     const attendees = players.map(p => p)
 
-    attendees.sort((a: Player, b: Player) => {
-        return a.score - b.score || seed(a, prime) - seed(b, prime)
-    })
+    attendees.sort(asc(prime))
 
     let allTeams: Player[][] = []
     let teamSelector: number = 0;
@@ -49,6 +66,8 @@ export const teams = (players: Player[], numTeams: number, prime: number = Defau
     return allTeams
 }
 
+const defendersFilter = (p: Player) => p.pos === Position.defender
+const attackersFilter = (p: Player) => p.pos === Position.attacker
 export const femaleFilter = (p: Player) => p.gender === Gender.female
 export const maleFilter = (p: Player) => p.gender === Gender.male
 export const lowFilter = (limit: number) => (p: Player) => p.score <= limit
@@ -66,11 +85,11 @@ export const teamAVG = (team: Player[]) => {
 }
 
 export const teamMedian = (team: Player[]) => {
-    if (team.length === 0){
+    const copy = team.map(p => p)
+    if (copy.length === 0) {
         return 0
     }
-    const teamCopy = team.map(p => p)
-    teamCopy.sort((a, b) => a.score - b.score)
-    const midIdx = Math.floor(team.length / 2)
-    return Math.floor(team[midIdx].score)
+    copy.sort(asc(1))
+    const midIdx = Math.floor(copy.length / 2)
+    return Math.floor(copy[midIdx].score)
 }
