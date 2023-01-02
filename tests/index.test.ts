@@ -5,47 +5,27 @@ import {
     highFilter,
     lowFilter,
     maleFilter,
-    Player,
+    Position,
     seed,
     teamAVG,
     teamMedian,
     teamsFilter
 } from "../index"
 
-
-class Attendee implements Player {
-    score: number
-    gender: Gender
-
-    constructor(score: number, gender: Gender) {
-        this.score = score;
-        this.gender = gender;
-    }
-
-    Score(): number {
-        return this.score;
-    }
-
-    Gender(): Gender {
-        return this.gender;
-    }
-}
-
 const players = [
-    new Attendee(2, Gender.male),
-    new Attendee(10, Gender.female),
-    new Attendee(9, Gender.male),
-    new Attendee(1, Gender.female),
-    new Attendee(3, Gender.female),
-    new Attendee(5, Gender.male),
-    new Attendee(8, Gender.female),
-    new Attendee(7, Gender.female),
-    new Attendee(4, Gender.male),
-    new Attendee(6, Gender.male),
-    new Attendee(3, Gender.male),
-    new Attendee(2, Gender.female),
+    {score: 1, gender: Gender.female, pos: Position.defender},
+    {score: 2, gender: Gender.male, pos: Position.defender},
+    {score: 2, gender: Gender.female, pos: Position.attacker},
+    {score: 3, gender: Gender.female, pos: Position.defender},
+    {score: 3, gender: Gender.male, pos: Position.attacker},
+    {score: 4, gender: Gender.male, pos: Position.attacker},
+    {score: 5, gender: Gender.male, pos: Position.defender},
+    {score: 6, gender: Gender.male, pos: Position.attacker},
+    {score: 7, gender: Gender.female, pos: Position.attacker},
+    {score: 8, gender: Gender.female, pos: Position.attacker},
+    {score: 9, gender: Gender.male, pos: Position.defender},
+    {score: 10, gender: Gender.female, pos: Position.defender},
 ]
-
 
 describe('main file', () => {
     it('should return a deterministic seed', () => {
@@ -53,7 +33,7 @@ describe('main file', () => {
     })
 
     it('should return the median', () => {
-        expect(teamMedian(players)).toBe(8)
+        expect(teamMedian(players)).toBe(5)
     })
 
     it('should return the average', () => {
@@ -64,15 +44,15 @@ describe('main file', () => {
         it('should filter less than or equal to the given limit and create 2 teams', () => {
             const expected = [
                 [
-                    new Attendee(5, Gender.male),
-                    new Attendee(1, Gender.female),
-                    new Attendee(3, Gender.male),
-                    new Attendee(2, Gender.male),
+                    {score: 5, gender: Gender.male, pos: Position.defender},
+                    {score: 1, gender: Gender.female, pos: Position.defender},
+                    {score: 3, gender: Gender.female, pos: Position.defender},
+                    {score: 2, gender: Gender.female, pos: Position.attacker},
                 ],
                 [
-                    new Attendee(4, Gender.male),
-                    new Attendee(2, Gender.female),
-                    new Attendee(3, Gender.female),
+                    {score: 4, gender: Gender.male, pos: Position.attacker},
+                    {score: 2, gender: Gender.male, pos: Position.defender},
+                    {score: 3, gender: Gender.male, pos: Position.attacker},
                 ]
             ]
             expect(teamsFilter(lowFilter(5))(players, 2)).toEqual(expected)
@@ -81,13 +61,13 @@ describe('main file', () => {
         it('should filter greater than to the given limit and create 2 teams', () => {
             const expected = [
                 [
-                    new Attendee(10, Gender.female),
-                    new Attendee(6, Gender.male),
-                    new Attendee(8, Gender.female),
+                    {score: 10, gender: Gender.female, pos: Position.defender},
+                    {score: 6, gender: Gender.male, pos: Position.attacker},
+                    {score: 8, gender: Gender.female, pos: Position.attacker},
                 ],
                 [
-                    new Attendee(9, Gender.male),
-                    new Attendee(7, Gender.female),
+                    {score: 9, gender: Gender.male, pos: Position.defender},
+                    {score: 7, gender: Gender.female, pos: Position.attacker},
                 ]
             ]
             expect(teamsFilter(highFilter(5))(players, 2)).toEqual(expected)
@@ -96,14 +76,14 @@ describe('main file', () => {
         it('should filter only women and return 2 teams', () => {
             const expected = [
                 [
-                    new Attendee(10, Gender.female),
-                    new Attendee(1, Gender.female),
-                    new Attendee(7, Gender.female),
+                    {score: 10, gender: Gender.female, pos: Position.defender},
+                    {score: 1, gender: Gender.female, pos: Position.defender},
+                    {score: 7, gender: Gender.female, pos: Position.attacker},
                 ],
                 [
-                    new Attendee(8, Gender.female),
-                    new Attendee(2, Gender.female),
-                    new Attendee(3, Gender.female),
+                    {score: 8, gender: Gender.female, pos: Position.attacker},
+                    {score: 2, gender: Gender.female, pos: Position.attacker},
+                    {score: 3, gender: Gender.female, pos: Position.defender},
                 ]
             ]
             expect(teamsFilter(femaleFilter)(players, 2)).toEqual(expected)
@@ -111,18 +91,17 @@ describe('main file', () => {
         it('should filter only men and return 2 teams', () => {
             const expected = [
                 [
-                    new Attendee(9, Gender.male),
-                    new Attendee(2, Gender.male),
-                    new Attendee(5, Gender.male),
+                    {score: 9, gender: Gender.male, pos: Position.defender},
+                    {score: 2, gender: Gender.male, pos: Position.defender},
+                    {score: 5, gender: Gender.male, pos: Position.defender},
                 ],
                 [
-                    new Attendee(6, Gender.male),
-                    new Attendee(3, Gender.male),
-                    new Attendee(4, Gender.male),
+                    {score: 6, gender: Gender.male, pos: Position.attacker},
+                    {score: 3, gender: Gender.male, pos: Position.attacker},
+                    {score: 4, gender: Gender.male, pos: Position.attacker},
                 ]
             ]
             expect(teamsFilter(maleFilter)(players, 2)).toEqual(expected)
         })
     })
-
 })

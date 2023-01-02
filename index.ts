@@ -6,11 +6,15 @@ export enum Gender {
     male = 0,
     female = 1
 }
+export enum Position {
+    attacker = 0,
+    defender = 1
+}
 
 export interface Player {
-    Score(): number
-
-    Gender(): Gender
+    score: number
+    pos: Position
+    gender: Gender
 }
 
 export const seed = (player: any, prime: number): number => parseInt(hash.MD5(player), 16) % prime
@@ -19,7 +23,7 @@ export const teams = (players: Player[], numTeams: number, prime: number = Defau
     const attendees = players.map(p => p)
 
     attendees.sort((a: Player, b: Player) => {
-        return a.Score() - b.Score() || seed(a, prime) - seed(b, prime)
+        return a.score - b.score || seed(a, prime) - seed(b, prime)
     })
 
     let allTeams: Player[][] = []
@@ -45,10 +49,10 @@ export const teams = (players: Player[], numTeams: number, prime: number = Defau
     return allTeams
 }
 
-export const femaleFilter = (p: Player) => p.Gender() === Gender.female
-export const maleFilter = (p: Player) => p.Gender() === Gender.male
-export const lowFilter = (limit: number) => (p: Player) => p.Score() <= limit
-export const highFilter = (limit: number) => (p: Player) => p.Score() > limit
+export const femaleFilter = (p: Player) => p.gender === Gender.female
+export const maleFilter = (p: Player) => p.gender === Gender.male
+export const lowFilter = (limit: number) => (p: Player) => p.score <= limit
+export const highFilter = (limit: number) => (p: Player) => p.score > limit
 
 export const teamsFilter = (filterFunc: (p: Player) => {}) => {
     return (attendees: Player[], numTeams: number, prime: number = DefaultPrime): Player[][] => {
@@ -57,13 +61,16 @@ export const teamsFilter = (filterFunc: (p: Player) => {}) => {
 }
 
 export const teamAVG = (team: Player[]) => {
-    const avg = team.reduce((acc, p) => acc + p.Score(), 0) / team.length
+    const avg = team.reduce((acc, p) => acc + p.score, 0) / team.length
     return Math.round(avg * 100) / 100
 }
 
 export const teamMedian = (team: Player[]) => {
+    if (team.length === 0){
+        return 0
+    }
     const teamCopy = team.map(p => p)
-    teamCopy.sort((a, b) => a.Score() - b.Score())
+    teamCopy.sort((a, b) => a.score - b.score)
     const midIdx = Math.floor(team.length / 2)
-    return Math.floor(team[midIdx].Score())
+    return Math.floor(team[midIdx].score)
 }
