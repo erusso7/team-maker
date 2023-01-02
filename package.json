@@ -1,6 +1,6 @@
 {
   "name": "team-maker",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "JS library to split a list of players into different teams",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
