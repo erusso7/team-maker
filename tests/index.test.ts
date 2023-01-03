@@ -1,5 +1,6 @@
 import {
-    DefaultPrime,
+    attackersFilter,
+    DefaultPrime, defendersFilter,
     femaleFilter,
     Gender,
     highFilter,
@@ -127,6 +128,40 @@ describe('main file', () => {
                 ]
             ]
             expect(teams(players, 2)).toEqual(expected)
+        })
+
+        it('should return 2 teams even when there are no defenders', ()=>{
+            const expected = [
+                [
+                    {score: 8, gender: Gender.female, pos: Position.attacker},
+                    {score: 2, gender: Gender.female, pos: Position.attacker},
+                    {score: 6, gender: Gender.male, pos: Position.attacker},
+                ],
+                [
+                    {score: 7, gender: Gender.female, pos: Position.attacker},
+                    {score: 3, gender: Gender.male, pos: Position.attacker},
+                    {score: 4, gender: Gender.male, pos: Position.attacker},
+                ]
+            ]
+            const attackers = players.filter(attackersFilter)
+            expect(teams(attackers, 2)).toEqual(expected)
+        })
+
+        it('should return 2 teams even when there are no attackers', ()=>{
+            const expected = [
+                [
+                    {score: 9, gender: Gender.male, pos: Position.defender},
+                    {score: 2, gender: Gender.male, pos: Position.defender},
+                    {score: 3, gender: Gender.female, pos: Position.defender}
+                ],
+                [
+                    {score: 10, gender: Gender.female, pos: Position.defender},
+                    {score: 1, gender: Gender.female, pos: Position.defender},
+                    {score: 5, gender: Gender.male, pos: Position.defender}
+                ]
+            ]
+            const defenders = players.filter(defendersFilter)
+            expect(teams(defenders, 2)).toEqual(expected)
         })
     })
 })

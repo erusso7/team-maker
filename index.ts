@@ -32,7 +32,9 @@ export const teams = (players: Player[], numTeams: number, prime: number = Defau
 
     let allTeams: Player[][] = []
     for (let i = 0; i < numTeams; i++) {
-        allTeams.push(attackTeams[i].concat(defendTeams[numTeams - i - 1]))
+        const defenderTeam = defendTeams[numTeams - i - 1] || []
+        const attackTeam = attackTeams[i] || []
+        allTeams.push([...attackTeam, ...defenderTeam])
     }
 
     return allTeams
@@ -66,8 +68,8 @@ const splitPlayers = (players: Player[], numTeams: number, prime: number = Defau
     return allTeams
 }
 
-const defendersFilter = (p: Player) => p.pos === Position.defender
-const attackersFilter = (p: Player) => p.pos === Position.attacker
+export const defendersFilter = (p: Player) => p.pos === Position.defender
+export const attackersFilter = (p: Player) => p.pos === Position.attacker
 export const femaleFilter = (p: Player) => p.gender === Gender.female
 export const maleFilter = (p: Player) => p.gender === Gender.male
 export const lowFilter = (limit: number) => (p: Player) => p.score <= limit
