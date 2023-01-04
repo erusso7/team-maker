@@ -3,18 +3,18 @@ let hash = require('object-hash')
 export const DefaultPrime = 13127
 
 export enum Gender {
-    male = 0,
-    female = 1
+    male = 'male',
+    female = 'female'
 }
 
 export enum Position {
-    attacker = 0,
-    defender = 1
+    attacker = 'attacker',
+    defender = 'defender'
 }
 
 export interface Player {
     score: number
-    pos: Position
+    position: Position
     gender: Gender
 }
 
@@ -68,8 +68,8 @@ const splitPlayers = (players: Player[], numTeams: number, prime: number = Defau
     return allTeams
 }
 
-export const defendersFilter = (p: Player) => p.pos === Position.defender
-export const attackersFilter = (p: Player) => p.pos === Position.attacker
+export const defendersFilter = (p: Player) => p.position === Position.defender
+export const attackersFilter = (p: Player) => p.position === Position.attacker
 export const femaleFilter = (p: Player) => p.gender === Gender.female
 export const maleFilter = (p: Player) => p.gender === Gender.male
 export const lowFilter = (limit: number) => (p: Player) => p.score <= limit
