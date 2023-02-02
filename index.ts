@@ -7,14 +7,9 @@ export enum Gender {
     female = 'female'
 }
 
-export enum Position {
-    attacker = 'attacker',
-    defender = 'defender'
-}
-
 export interface Player {
     score: number
-    position: Position
+    position: string
     gender: Gender
 }
 
@@ -26,63 +21,71 @@ const asc = (prime: number = DefaultPrime) => {
     }
 }
 
-export const teams = (players: Player[], numTeams: number, prime: number = DefaultPrime) => {
-    const attackTeams = splitPlayers(players.filter(attackersFilter), numTeams, prime)
-    const defendTeams = splitPlayers(players.filter(defendersFilter), numTeams, prime)
+export class Team {
+    score: number
+    players: Player[]
 
-    let allTeams: Player[][] = []
-    for (let i = 0; i < numTeams; i++) {
-        const defenderTeam = defendTeams[numTeams - i - 1] || []
-        const attackTeam = attackTeams[i] || []
-        allTeams.push([...attackTeam, ...defenderTeam])
+    constructor(players: Player[] = []) {
+        this.players = players
+        this.score = playersAVG(this.players)
     }
 
-    return allTeams
+    push(...players: Player[]): void {
+        this.players.push(...players)
+        this.score = playersAVG(this.players)
+    }
 }
 
-const splitPlayers = (players: Player[], numTeams: number, prime: number = DefaultPrime) => {
-    const attendees = players.map(p => p)
-
-    attendees.sort(asc(prime))
-
-    let allTeams: Player[][] = []
-    let teamSelector: number = 0;
-    let countPlayers: number = 0;
-    while (attendees.length > 0) {
-        teamSelector = countPlayers % numTeams;
-
-        if (!allTeams[teamSelector]) {
-            allTeams[teamSelector] = []
-        }
-
-        allTeams[teamSelector].push(
-            <Player>attendees.pop()
-        )
-
-        countPlayers = players.length - attendees.length
-        if (countPlayers % numTeams === 0) {
-            attendees.reverse()
-        }
+export const teams = (players: Player[], requiredTeams: number, prime: number = DefaultPrime): Team[] => {
+    const result = new Array<Team>(requiredTeams)
+    for (let i = 0; i < requiredTeams; i++) {
+        result[i] = new Team()
     }
 
-    return allTeams
+    // Sort by position and descending by score
+    const availablePlayers = players.map(p => p)
+    sortPlayers(availablePlayers, prime)
+
+    const lastTeamIdx = result.length - 1
+    while (availablePlayers.length) {
+        sortTeams(result)
+        const p = availablePlayers.pop() as Player
+        result[lastTeamIdx].push(p)
+    }
+
+    return result
 }
 
-export const defendersFilter = (p: Player) => p.position === Position.defender
-export const attackersFilter = (p: Player) => p.position === Position.attacker
+const sortPlayers = (players: Player[], prime: number): void => {
+    players.sort((a, b) => {
+        return a.position.localeCompare(b.position)
+            || a.score - b.score
+            || seed(a, prime) - seed(b, prime)
+    })
+}
+
+const sortTeams = (teams: Team[]): void => {
+    teams.sort((a, b) => {
+        return b.players.length - a.players.length || b.score - a.score
+    })
+}
+
 export const femaleFilter = (p: Player) => p.gender === Gender.female
 export const maleFilter = (p: Player) => p.gender === Gender.male
 export const lowFilter = (limit: number) => (p: Player) => p.score <= limit
 export const highFilter = (limit: number) => (p: Player) => p.score > limit
 
 export const teamsFilter = (filterFunc: (p: Player) => {}) => {
-    return (attendees: Player[], numTeams: number, prime: number = DefaultPrime): Player[][] => {
+    return (attendees: Player[], numTeams: number, prime: number = DefaultPrime): Team[] => {
         return teams(attendees.filter(filterFunc), numTeams, prime)
     }
 }
 
-export const teamAVG = (team: Player[]) => {
-    const avg = team.reduce((acc, p) => acc + p.score, 0) / team.length
+export const playersAVG = (players: Player[]) => {
+    if (players.length === 0) {
+        return 0
+    }
+    const avg = players.reduce((acc, p) => acc + p.score, 0) / players.length
     return Math.round(avg * 100) / 100
 }
 
