@@ -34,6 +34,10 @@ export class Team {
         this.players.push(...players)
         this.score = playersAVG(this.players)
     }
+
+    includes(p: Player): boolean {
+        return this.players.includes(p)
+    }
 }
 
 export const teams = (players: Player[], requiredTeams: number, prime: number = DefaultPrime): Team[] => {
@@ -42,6 +46,11 @@ export const teams = (players: Player[], requiredTeams: number, prime: number = 
         result[i] = new Team()
     }
 
+    return fillTeams(result, players, prime)
+}
+
+export const fillTeams = (teams: Team[], players: Player[], prime: number = DefaultPrime): Team[] => {
+    const result = teams.map(t => t)
     // Sort by position and descending by score
     const availablePlayers = players.map(p => p)
     sortPlayers(availablePlayers, prime)
