@@ -1,6 +1,6 @@
 {
   "name": "team-maker",
-  "version": "3.1.2",
+  "version": "3.1.3",
   "description": "JS library to split a list of players into different teams",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -10,7 +10,7 @@
   "scripts": {
     "test": "jest"
   },
-  "prepublish": "tsc",
+  "prepublish": "rm -rf && tsc",
   "dependencies": {
     "object-hash": "^3.0.0"
   },
