@@ -22,10 +22,12 @@ const asc = (prime: number = DefaultPrime) => {
 }
 
 export class Team {
+    name?: string
     score: number
     players: Player[]
 
-    constructor(players: Player[] = []) {
+    constructor(players: Player[] = [], name: string = "") {
+        this.name = name
         this.players = players
         this.score = playersAVG(this.players)
     }
