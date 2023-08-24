@@ -9,8 +9,9 @@ export enum Gender {
 
 export interface Player {
     score: number
-    position: string
+    position: string | string[]
     gender: Gender
+    taken?: boolean
 }
 
 export const seed = (player: any, prime: number): number => parseInt(hash.MD5(player), 16) % prime
@@ -51,6 +52,61 @@ export const teams = (players: Player[], requiredTeams: number, prime: number = 
     return fillTeams(result, players, prime)
 }
 
+export const fillTeamsWithPositions = (
+    teams: Team[],
+    teamDefinition: { [pos: string]: number },
+    players: Player[],
+    prime: number = DefaultPrime
+): Team[] => {
+    if (teams.length === 0) return []
+
+    const resultTeams: Team[] = [...teams]
+    const positions = {...teamDefinition}
+    const candidates = players.map(p => {
+        const candidatePositions = Array.isArray(p.position)
+            ? p.position
+            : p.position.split(",").map(po => po.trim())
+        return {...p, position: candidatePositions}
+    })
+
+    //TODO: When pre-fixed teams, check the required positions
+
+    // Prioritize the teams based on the positions
+    for (const pos in positions) {
+        for (let i = positions[pos]; i > 0; i--) {
+            for (const t in resultTeams) {
+                const candidateForMainPosition: Player[] = candidates
+                    .filter(p => !p.taken)
+                    .filter(p => p.position[0] === pos)
+                    .sort((pa, pb) => pa.score - pb.score)
+
+                const candidateForSecondPosition: Player[] = candidates
+                    .filter(p => !p.taken)
+                    .filter(p => p.position[1] && p.position[1] === pos)
+                    .sort((pa, pb) => pa.score - pb.score)
+
+                if (candidateForMainPosition.length + candidateForSecondPosition.length === 0) break;
+                const selected = (candidateForMainPosition.pop() || candidateForSecondPosition.pop()) as Player
+                selected.taken = true
+                resultTeams[t].push(selected)
+            }
+            sortTeamsAsc(resultTeams)
+        }
+    }
+
+    const remainingCandidates = candidates
+        .filter(c => !c.taken)
+        .sort((pa, pb) => pa.score - pb.score)
+
+    for (const candidate of remainingCandidates) {
+        sortTeamsAsc(resultTeams)
+        candidate.taken = true
+        resultTeams[0].push(candidate)
+    }
+
+    return resultTeams
+}
+
 export const fillTeams = (teams: Team[], players: Player[], prime: number = DefaultPrime): Team[] => {
     const result = teams.map(t => t)
     // Sort by position and descending by score
@@ -69,12 +125,19 @@ export const fillTeams = (teams: Team[], players: Player[], prime: number = Defa
 
 const sortPlayers = (players: Player[], prime: number): void => {
     players.sort((a, b) => {
-        return a.position.localeCompare(b.position)
+        const playerAPos: string = Array.isArray(a.position) ? a.position.join("") : a.position
+        const playerBPos: string = Array.isArray(b.position) ? b.position.join("") : b.position
+        return playerAPos.localeCompare(playerBPos)
             || a.score - b.score
             || seed(a, prime) - seed(b, prime)
     })
 }
 
+export const sortTeamsAsc = (teams: Team[]): void => {
+    teams.sort((a, b) => {
+        return a.players.length - b.players.length || a.score - b.score
+    })
+}
 const sortTeams = (teams: Team[]): void => {
     teams.sort((a, b) => {
         return b.players.length - a.players.length || b.score - a.score

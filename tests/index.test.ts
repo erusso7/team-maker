@@ -2,6 +2,7 @@ import {
     DefaultPrime,
     femaleFilter,
     fillTeams,
+    fillTeamsWithPositions,
     Gender,
     highFilter,
     lowFilter,
@@ -9,6 +10,7 @@ import {
     Player,
     playersAVG,
     seed,
+    sortTeamsAsc,
     Team,
     teamMedian,
     teams,
@@ -29,18 +31,18 @@ class TestPlayer implements Player {
     }
 }
 
-const ScarletWitch = new TestPlayer("Scarlet witch", Gender.female, 'F', 10)
-const PepperPots = new TestPlayer("Pepper pots", Gender.female, 'A', 2)
-const Nebula = new TestPlayer("Nebula", Gender.female, 'D', 1)
-const Gamora = new TestPlayer("Gamora", Gender.female, 'F', 7)
 const CaptainMarvel = new TestPlayer("Captain marvel", Gender.female, 'A', 8)
-const Valkyrie = new TestPlayer("Valkyrie", Gender.female, 'D', 3)
+const Hulk = new TestPlayer("Hulk", Gender.male, 'A', 6)
 const Drax = new TestPlayer("Drax", Gender.male, 'A', 3)
-const HawkEye = new TestPlayer("Hawk eye", Gender.male, 'D', 5)
+const PepperPots = new TestPlayer("Pepper pots", Gender.female, 'A', 2)
 const IronMan = new TestPlayer("IronMan", Gender.male, 'D', 9)
+const HawkEye = new TestPlayer("Hawk eye", Gender.male, 'D', 5)
+const Valkyrie = new TestPlayer("Valkyrie", Gender.female, 'D', 3)
+const Nebula = new TestPlayer("Nebula", Gender.female, 'D', 1)
+const ScarletWitch = new TestPlayer("Scarlet witch", Gender.female, 'F', 10)
+const Gamora = new TestPlayer("Gamora", Gender.female, 'F', 7)
 const Rocket = new TestPlayer("Rocket", Gender.male, 'F', 4)
 const Groot = new TestPlayer("Groot", Gender.male, 'F', 2)
-const Hulk = new TestPlayer("Hulk", Gender.male, 'A', 6)
 
 const players = <Player[]>[
     ScarletWitch,
@@ -155,4 +157,97 @@ describe('main file', () => {
             expect(teams).toEqual(expected)
         })
     })
+
+    describe('sorting teams in ascending order', () => {
+        it('should do nothing when same amount of player and same score', () => {
+            const teamA = new Team([PepperPots])
+            const teamB = new Team([Groot])
+            const result = [teamA, teamB]
+            sortTeamsAsc(result)
+            expect(result).toEqual([teamA, teamB])
+        })
+        it('should revert given order when first team has more players', () => {
+            const teamA = new Team([PepperPots, Valkyrie])
+            const teamB = new Team([Groot])
+            const result = [teamA, teamB]
+            sortTeamsAsc(result)
+            expect(result).toEqual([teamB, teamA])
+        })
+        it('should do nothing when second team has more players', () => {
+            const teamA = new Team([PepperPots])
+            const teamB = new Team([Groot, Valkyrie])
+            const result = [teamA, teamB]
+            sortTeamsAsc(result)
+            expect(result).toEqual([teamA, teamB])
+        })
+        it('should revert given order when first team has smaller score', () => {
+            const teamA = new Team([PepperPots, Valkyrie])
+            const teamB = new Team([Groot, Nebula])
+            const result = [teamA, teamB]
+            sortTeamsAsc(result)
+            expect(result).toEqual([teamB, teamA])
+        })
+    });
+
+    describe('teams with definition', () => {
+        it('should return empty teams when no players or teams are given', () => {
+            expect(
+                fillTeamsWithPositions([], {}, [])
+            ).toEqual([])
+        })
+
+        it('should return a team with the highest player in a given position', () => {
+            const expectedPlayer = {taken: true, score: 100, position: ["A", "B"], gender: Gender.male}
+            const expectedTeam = new Team()
+            expectedTeam.push(expectedPlayer)
+            expect(
+                fillTeamsWithPositions(
+                    [new Team()],
+                    {"A": 1},
+                    [{...expectedPlayer, taken: false, position: "A, B"}]
+                )
+            ).toEqual([expectedTeam])
+        })
+
+        it('should return balanced teams using main positions', () => {
+            const definition = {"A": 1, "D": 2, "F": 1}
+            const players = [
+                CaptainMarvel,
+                HawkEye,
+                Valkyrie,
+                Gamora,
+                Hulk,
+                IronMan,
+                Nebula,
+                ScarletWitch,
+                Drax,
+                PepperPots
+            ]
+            const teamA = new Team()
+            const teamB = new Team()
+            teamA.push(
+                {...CaptainMarvel, position: [CaptainMarvel.position], taken: true},
+                {...HawkEye, position: [HawkEye.position], taken: true},
+                {...Valkyrie, position: [Valkyrie.position], taken: true},
+                {...ScarletWitch, position: [ScarletWitch.position], taken: true},
+                {...Drax, position: [Drax.position], taken: true},
+            )
+            teamB.push(
+                {...Hulk, position: [Hulk.position], taken: true},
+                {...IronMan, position: [IronMan.position], taken: true},
+                {...Nebula, position: [Nebula.position], taken: true},
+                {...Gamora, position: [Gamora.position], taken: true},
+                {...PepperPots, position: [PepperPots.position], taken: true},
+            )
+
+            const result = fillTeamsWithPositions(
+                [new Team(), new Team()],
+                definition,
+                players
+            )
+            expect(result).toEqual([teamA, teamB])
+        })
+    })
 })
+
+
