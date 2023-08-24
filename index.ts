@@ -9,7 +9,7 @@ export enum Gender {
 
 export interface Player {
     score: number
-    position: string | string[]
+    positions: string | string[]
     gender: Gender
     taken?: boolean
 }
@@ -55,49 +55,47 @@ export const teams = (players: Player[], requiredTeams: number, prime: number = 
 export const fillTeamsWithPositions = (
     teams: Team[],
     teamDefinition: { [pos: string]: number },
-    players: Player[],
-    prime: number = DefaultPrime
+    players: Player[]
 ): Team[] => {
     if (teams.length === 0) return []
+    if (players.length === 0) return teams
 
     const resultTeams: Team[] = [...teams]
     const positions = {...teamDefinition}
     const candidates = players.map(p => {
-        const candidatePositions = Array.isArray(p.position)
-            ? p.position
-            : p.position.split(",").map(po => po.trim())
-        return {...p, position: candidatePositions}
+        const candidatePositions = Array.isArray(p.positions)
+            ? p.positions
+            : p.positions.split(",").map(po => po.trim())
+        return {...p, positions: candidatePositions}
     })
-
-    //TODO: When pre-fixed teams, check the required positions
 
     // Prioritize the teams based on the positions
     for (const pos in positions) {
-        for (let i = positions[pos]; i > 0; i--) {
+        for (let requirePlayers = positions[pos]; requirePlayers > 0; requirePlayers--) {
+            sortTeamsAsc(resultTeams)
             for (const t in resultTeams) {
-                const candidateForMainPosition: Player[] = candidates
+                const posCovered = positions[pos] - countPosInTeam(resultTeams[t], pos) <= 0
+                if (posCovered) continue;
+
+                const candidatesInPosition: Player[] = candidates
                     .filter(p => !p.taken)
-                    .filter(p => p.position[0] === pos)
+                    .filter(p => p.positions.includes(pos))
                     .sort((pa, pb) => pa.score - pb.score)
 
-                const candidateForSecondPosition: Player[] = candidates
-                    .filter(p => !p.taken)
-                    .filter(p => p.position[1] && p.position[1] === pos)
-                    .sort((pa, pb) => pa.score - pb.score)
-
-                if (candidateForMainPosition.length + candidateForSecondPosition.length === 0) break;
-                const selected = (candidateForMainPosition.pop() || candidateForSecondPosition.pop()) as Player
+                if (candidatesInPosition.length === 0) break;
+                const selected = candidatesInPosition.pop() as Player
                 selected.taken = true
                 resultTeams[t].push(selected)
             }
-            sortTeamsAsc(resultTeams)
         }
     }
 
+    //Sort remaining players in descending order
     const remainingCandidates = candidates
         .filter(c => !c.taken)
-        .sort((pa, pb) => pa.score - pb.score)
+        .sort((pa, pb) => pb.score - pa.score)
 
+    // Fill the teams with the remaining players
     for (const candidate of remainingCandidates) {
         sortTeamsAsc(resultTeams)
         candidate.taken = true
@@ -105,6 +103,15 @@ export const fillTeamsWithPositions = (
     }
 
     return resultTeams
+}
+
+export const countPosInTeam = (team: Team, pos: string): number => {
+    return team.players.filter(p => {
+        const positions = Array.isArray(p.positions)
+            ? p.positions
+            : (p.positions as String).split(",")
+        return positions.includes(pos)
+    }).length
 }
 
 export const fillTeams = (teams: Team[], players: Player[], prime: number = DefaultPrime): Team[] => {
@@ -125,8 +132,8 @@ export const fillTeams = (teams: Team[], players: Player[], prime: number = Defa
 
 const sortPlayers = (players: Player[], prime: number): void => {
     players.sort((a, b) => {
-        const playerAPos: string = Array.isArray(a.position) ? a.position.join("") : a.position
-        const playerBPos: string = Array.isArray(b.position) ? b.position.join("") : b.position
+        const playerAPos: string = Array.isArray(a.positions) ? a.positions.join("") : a.positions
+        const playerBPos: string = Array.isArray(b.positions) ? b.positions.join("") : b.positions
         return playerAPos.localeCompare(playerBPos)
             || a.score - b.score
             || seed(a, prime) - seed(b, prime)

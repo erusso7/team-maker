@@ -1,4 +1,5 @@
 import {
+    countPosInTeam,
     DefaultPrime,
     femaleFilter,
     fillTeams,
@@ -20,13 +21,13 @@ import {
 class TestPlayer implements Player {
     public name: string;
     public gender: Gender;
-    public position: string;
+    public positions: string | string[];
     public score: number;
 
-    constructor(n: string, g: Gender, p: string, s: number) {
+    constructor(n: string, g: Gender, p: string | string[], s: number) {
         this.name = n
         this.gender = g
-        this.position = p
+        this.positions = p
         this.score = s
     }
 }
@@ -43,6 +44,14 @@ const ScarletWitch = new TestPlayer("Scarlet witch", Gender.female, 'F', 10)
 const Gamora = new TestPlayer("Gamora", Gender.female, 'F', 7)
 const Rocket = new TestPlayer("Rocket", Gender.male, 'F', 4)
 const Groot = new TestPlayer("Groot", Gender.male, 'F', 2)
+const WarMachine = new TestPlayer("War machine", Gender.male, 'W', 5)
+
+const Falcon = new TestPlayer("Falcon", Gender.male, ['W'], 6)
+const Wasp = new TestPlayer("Wasp", Gender.female, ['C'], 6)
+const SpiderMan = new TestPlayer("Spider-man", Gender.male, ['C'], 8)
+const DrStrange = new TestPlayer("Dr Strange", Gender.male, ['W'], 8)
+const Wong = new TestPlayer("Wong", Gender.male, ['C'], 5)
+const BlackPanther = new TestPlayer("Black panther", Gender.male, ['C'], 7)
 
 const players = <Player[]>[
     ScarletWitch,
@@ -57,7 +66,7 @@ const players = <Player[]>[
     Groot,
     Valkyrie,
     Hulk,
-].sort((a, b) => 0.5 - Math.random());
+].sort(() => 0.5 - Math.random());
 
 describe('main file', () => {
     it('should return a deterministic seed', () => {
@@ -189,6 +198,17 @@ describe('main file', () => {
         })
     });
 
+    describe('count positions in a Team', () => {
+        it('should count all members when the position is a string', () => {
+            const team = new Team([IronMan, HawkEye])
+            expect(countPosInTeam(team, 'D')).toBe(2)
+        })
+        it('should count all members when the position is an array', () => {
+            const team = new Team([DrStrange, Falcon])
+            expect(countPosInTeam(team, 'W')).toBe(2)
+        })
+    });
+
     describe('teams with definition', () => {
         it('should return empty teams when no players or teams are given', () => {
             expect(
@@ -197,14 +217,14 @@ describe('main file', () => {
         })
 
         it('should return a team with the highest player in a given position', () => {
-            const expectedPlayer = {taken: true, score: 100, position: ["A", "B"], gender: Gender.male}
+            const expectedPlayer = {taken: true, score: 100, positions: ["A", "B"], gender: Gender.male}
             const expectedTeam = new Team()
             expectedTeam.push(expectedPlayer)
             expect(
                 fillTeamsWithPositions(
                     [new Team()],
                     {"A": 1},
-                    [{...expectedPlayer, taken: false, position: "A, B"}]
+                    [{...expectedPlayer, taken: false, positions: "A, B"}]
                 )
             ).toEqual([expectedTeam])
         })
@@ -223,29 +243,99 @@ describe('main file', () => {
                 Drax,
                 PepperPots
             ]
-            const teamA = new Team()
-            const teamB = new Team()
-            teamA.push(
-                {...CaptainMarvel, position: [CaptainMarvel.position], taken: true},
-                {...HawkEye, position: [HawkEye.position], taken: true},
-                {...Valkyrie, position: [Valkyrie.position], taken: true},
-                {...ScarletWitch, position: [ScarletWitch.position], taken: true},
-                {...Drax, position: [Drax.position], taken: true},
-            )
-            teamB.push(
-                {...Hulk, position: [Hulk.position], taken: true},
-                {...IronMan, position: [IronMan.position], taken: true},
-                {...Nebula, position: [Nebula.position], taken: true},
-                {...Gamora, position: [Gamora.position], taken: true},
-                {...PepperPots, position: [PepperPots.position], taken: true},
-            )
+            const teamA = new Team([
+                {...CaptainMarvel, positions: [CaptainMarvel.positions as string], taken: true},
+                {...HawkEye, positions: [HawkEye.positions as string], taken: true},
+                {...Valkyrie, positions: [Valkyrie.positions as string], taken: true},
+                {...ScarletWitch, positions: [ScarletWitch.positions as string], taken: true},
+                {...PepperPots, positions: [PepperPots.positions as string], taken: true},
+            ], "Team A")
+            const teamB = new Team([
+                {...Hulk, positions: [Hulk.positions as string], taken: true},
+                {...IronMan, positions: [IronMan.positions as string], taken: true},
+                {...Nebula, positions: [Nebula.positions as string], taken: true},
+                {...Gamora, positions: [Gamora.positions as string], taken: true},
+                {...Drax, positions: [Drax.positions as string], taken: true},
+            ], "Team B")
 
             const result = fillTeamsWithPositions(
-                [new Team(), new Team()],
+                [new Team([], "Team A"), new Team([], "Team B")],
                 definition,
                 players
             )
-            expect(result).toEqual([teamA, teamB])
+            expect(
+                result.filter(t => t.name === teamA.name).pop()
+            ).toEqual(teamA)
+            expect(
+                result.filter(t => t.name === teamB.name).pop()
+            ).toEqual(teamB)
+        })
+
+        it('should return balanced teams teams using secondary positions', () => {
+            const definition = {'A': 1, 'C': 1}
+            const CM = {...CaptainMarvel, positions: ['X', 'A']}
+            const H = {...Hulk, positions: ['A', 'X']}
+            const SP = {...SpiderMan, positions: ['Y', 'C']}
+            const BP = {...BlackPanther, positions: ['Y', 'C']}
+            const D = {...Drax, positions: ['X', 'A']}
+            const W = {...Wong, positions: ['Y', 'C']}
+
+            const players = [CM, H, D, BP, SP, W,]
+
+            const teamA = new Team([
+                {...CM, taken: true},
+                {...BP, taken: true},
+                {...D, taken: true}
+            ], "Team A")
+            const teamB = new Team([
+                {...H, taken: true},
+                {...SP, taken: true},
+                {...W, taken: true}
+            ], "Team B")
+
+            const result = fillTeamsWithPositions(
+                [new Team([], teamA.name), new Team([], teamB.name)],
+                definition,
+                players
+            )
+            expect(
+                result.filter(t => t.name === teamA.name).pop()
+            ).toEqual(teamA)
+            expect(
+                result.filter(t => t.name === teamB.name).pop()
+            ).toEqual(teamB)
+
+        })
+
+        it('should fill teams with pre-fixed players', () => {
+            const definition = {'W': 1, 'C': 2}
+            const teamA = new Team([BlackPanther, Wasp])
+            const teamB = new Team([DrStrange])
+
+            const players = [
+                Falcon,
+                SpiderMan,
+                Wong,
+                WarMachine,
+                Drax
+            ]
+
+            const result = fillTeamsWithPositions([teamA, teamB], definition, players)
+            const expected = [
+                new Team([
+                    DrStrange,
+                    {...SpiderMan, taken: true},
+                    {...Wong, taken: true},
+                    {...Drax, positions: [Drax.positions as string], taken: true},
+                ]),
+                new Team([
+                    BlackPanther,
+                    Wasp,
+                    {...Falcon, taken: true},
+                    {...WarMachine, positions: [WarMachine.positions as string], taken: true}
+                ]),
+            ]
+            expect(result).toEqual(expected)
         })
     })
 })
