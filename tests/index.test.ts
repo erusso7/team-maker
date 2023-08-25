@@ -139,7 +139,7 @@ describe('main file', () => {
             const availableWomen = players
                 .filter(femaleFilter)
                 .filter(p => {
-                    return !teamA.includes(p)
+                    return !teamA.players.includes(p)
                 })
 
             const teams = fillTeams([teamA, teamB], availableWomen)
@@ -154,7 +154,7 @@ describe('main file', () => {
             const availableMen = players
                 .filter(maleFilter)
                 .filter(p => {
-                    return !teamA.includes(p) && !teamB.includes(p)
+                    return !teamA.players.includes(p) && !teamB.players.includes(p)
                 })
 
             const expected = [

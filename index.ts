@@ -22,11 +22,17 @@ const asc = (prime: number = DefaultPrime) => {
     }
 }
 
-export class Team {
+export interface TeamInt {
     name?: string
     score: number
     players: Player[]
+    push(...players: Player[]): void;
+}
 
+export class Team implements TeamInt{
+    name?: string
+    score: number
+    players: Player[]
     constructor(players: Player[] = [], name: string = "") {
         this.name = name
         this.players = players
@@ -37,14 +43,10 @@ export class Team {
         this.players.push(...players)
         this.score = playersAVG(this.players)
     }
-
-    includes(p: Player): boolean {
-        return this.players.includes(p)
-    }
 }
 
-export const teams = (players: Player[], requiredTeams: number, prime: number = DefaultPrime): Team[] => {
-    const result = new Array<Team>(requiredTeams)
+export const teams = (players: Player[], requiredTeams: number, prime: number = DefaultPrime): TeamInt[] => {
+    const result = new Array<TeamInt>(requiredTeams)
     for (let i = 0; i < requiredTeams; i++) {
         result[i] = new Team()
     }
@@ -53,14 +55,14 @@ export const teams = (players: Player[], requiredTeams: number, prime: number = 
 }
 
 export const fillTeamsWithPositions = (
-    teams: Team[],
+    teams: TeamInt[],
     teamDefinition: { [pos: string]: number },
     players: Player[]
-): Team[] => {
+): TeamInt[] => {
     if (teams.length === 0) return []
     if (players.length === 0) return teams
 
-    const resultTeams: Team[] = [...teams]
+    const resultTeams: TeamInt[] = [...teams]
     const positions = {...teamDefinition}
     const candidates = players.map(p => {
         const candidatePositions = Array.isArray(p.positions)
@@ -105,7 +107,7 @@ export const fillTeamsWithPositions = (
     return resultTeams
 }
 
-export const countPosInTeam = (team: Team, pos: string): number => {
+export const countPosInTeam = (team: TeamInt, pos: string): number => {
     return team.players.filter(p => {
         const positions = Array.isArray(p.positions)
             ? p.positions
@@ -114,7 +116,7 @@ export const countPosInTeam = (team: Team, pos: string): number => {
     }).length
 }
 
-export const fillTeams = (teams: Team[], players: Player[], prime: number = DefaultPrime): Team[] => {
+export const fillTeams = (teams: TeamInt[], players: Player[], prime: number = DefaultPrime): TeamInt[] => {
     const result = teams.map(t => t)
     // Sort by position and descending by score
     const availablePlayers = players.map(p => p)
@@ -140,12 +142,12 @@ const sortPlayers = (players: Player[], prime: number): void => {
     })
 }
 
-export const sortTeamsAsc = (teams: Team[]): void => {
+export const sortTeamsAsc = (teams: TeamInt[]): void => {
     teams.sort((a, b) => {
         return a.players.length - b.players.length || a.score - b.score
     })
 }
-const sortTeams = (teams: Team[]): void => {
+const sortTeams = (teams: TeamInt[]): void => {
     teams.sort((a, b) => {
         return b.players.length - a.players.length || b.score - a.score
     })
@@ -157,7 +159,7 @@ export const lowFilter = (limit: number) => (p: Player) => p.score <= limit
 export const highFilter = (limit: number) => (p: Player) => p.score > limit
 
 export const teamsFilter = (filterFunc: (p: Player) => {}) => {
-    return (attendees: Player[], numTeams: number, prime: number = DefaultPrime): Team[] => {
+    return (attendees: Player[], numTeams: number, prime: number = DefaultPrime): TeamInt[] => {
         return teams(attendees.filter(filterFunc), numTeams, prime)
     }
 }
