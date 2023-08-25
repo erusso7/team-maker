@@ -231,14 +231,20 @@ describe('main file', () => {
         })
 
         it('should return a team with the highest player in a given position', () => {
-            const expectedPlayer = {taken: true, score: 100, positions: ["A", "B"], gender: Gender.male}
+            const expectedPlayer = {
+                taken: true,
+                score: 100,
+                position: "A, B",
+                positions: ["A", "B"],
+                gender: Gender.male
+            }
             const expectedTeam = new Team()
             expectedTeam.push(expectedPlayer)
             expect(
                 fillTeamsWithPositions(
                     [new Team()],
                     {"A": 1},
-                    [{...expectedPlayer, taken: false, positions: ["A", "B"]}]
+                    [{...expectedPlayer, taken: false, position: "A, B", positions: ["A", "B"]}]
                 )
             ).toEqual([expectedTeam])
         })

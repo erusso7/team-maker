@@ -9,8 +9,8 @@ export enum Gender {
 
 export interface Player {
     score: number
-    position?: string /* @deprecated position */
-    positions?: string[]
+    position: string /* @deprecated position */
+    positions: string[]
     gender: Gender
     taken?: boolean
 }
