@@ -135,7 +135,7 @@ export const fillTeams = (teams: TeamInt[], players: Player[], prime: number = D
 
 const sortPlayers = (players: Player[], prime: number): void => {
     players.sort((a, b) => {
-        return a.position?.localeCompare(b.position || '')
+        return a.position.localeCompare(b.position)
             || a.score - b.score
             || seed(a, prime) - seed(b, prime)
     })
