@@ -19,39 +19,53 @@ import {
 } from "../index"
 
 class TestPlayer implements Player {
-    public name: string;
-    public gender: Gender;
-    public positions: string | string[];
-    public score: number;
+    public name: string = "";
+    public gender: Gender = Gender.male;
+    public position: string = "";
+    public positions: string[] = [];
+    public score: number = 0;
 
-    constructor(n: string, g: Gender, p: string | string[], s: number) {
-        this.name = n
-        this.gender = g
-        this.positions = p
-        this.score = s
+    static createWithOldPosition(n: string, g: Gender, p: string, s: number): TestPlayer {
+        const t = new TestPlayer()
+        t.name = n
+        t.gender = g
+        t.position = p
+        t.positions = p.split(",").map(s => s.trim())
+        t.score = s
+        return t
+    }
+
+    static createWithPositions(n: string, g: Gender, p: string[], s: number): TestPlayer {
+        const t = new TestPlayer()
+        t.name = n
+        t.gender = g
+        t.position = (p ? p.map(s => s.trim()).at(0) : "") as string
+        t.positions = p
+        t.score = s
+        return t
     }
 }
 
-const CaptainMarvel = new TestPlayer("Captain marvel", Gender.female, 'A', 8)
-const Hulk = new TestPlayer("Hulk", Gender.male, 'A', 6)
-const Drax = new TestPlayer("Drax", Gender.male, 'A', 3)
-const PepperPots = new TestPlayer("Pepper pots", Gender.female, 'A', 2)
-const IronMan = new TestPlayer("IronMan", Gender.male, 'D', 9)
-const HawkEye = new TestPlayer("Hawk eye", Gender.male, 'D', 5)
-const Valkyrie = new TestPlayer("Valkyrie", Gender.female, 'D', 3)
-const Nebula = new TestPlayer("Nebula", Gender.female, 'D', 1)
-const ScarletWitch = new TestPlayer("Scarlet witch", Gender.female, 'F', 10)
-const Gamora = new TestPlayer("Gamora", Gender.female, 'F', 7)
-const Rocket = new TestPlayer("Rocket", Gender.male, 'F', 4)
-const Groot = new TestPlayer("Groot", Gender.male, 'F', 2)
-const WarMachine = new TestPlayer("War machine", Gender.male, 'W', 5)
+const CaptainMarvel = TestPlayer.createWithOldPosition("Captain marvel", Gender.female, 'A', 8)
+const Hulk = TestPlayer.createWithOldPosition("Hulk", Gender.male, 'A', 6)
+const Drax = TestPlayer.createWithOldPosition("Drax", Gender.male, 'A', 3)
+const PepperPots = TestPlayer.createWithOldPosition("Pepper pots", Gender.female, 'A', 2)
+const IronMan = TestPlayer.createWithOldPosition("IronMan", Gender.male, 'D', 9)
+const HawkEye = TestPlayer.createWithOldPosition("Hawk eye", Gender.male, 'D', 5)
+const Valkyrie = TestPlayer.createWithOldPosition("Valkyrie", Gender.female, 'D', 3)
+const Nebula = TestPlayer.createWithOldPosition("Nebula", Gender.female, 'D', 1)
+const ScarletWitch = TestPlayer.createWithOldPosition("Scarlet witch", Gender.female, 'F', 10)
+const Gamora = TestPlayer.createWithOldPosition("Gamora", Gender.female, 'F', 7)
+const Rocket = TestPlayer.createWithOldPosition("Rocket", Gender.male, 'F', 4)
+const Groot = TestPlayer.createWithOldPosition("Groot", Gender.male, 'F', 2)
+const WarMachine = TestPlayer.createWithOldPosition("War machine", Gender.male, 'W', 5)
 
-const Falcon = new TestPlayer("Falcon", Gender.male, ['W'], 6)
-const Wasp = new TestPlayer("Wasp", Gender.female, ['C'], 6)
-const SpiderMan = new TestPlayer("Spider-man", Gender.male, ['C'], 8)
-const DrStrange = new TestPlayer("Dr Strange", Gender.male, ['W'], 8)
-const Wong = new TestPlayer("Wong", Gender.male, ['C'], 5)
-const BlackPanther = new TestPlayer("Black panther", Gender.male, ['C'], 7)
+const Falcon = TestPlayer.createWithPositions("Falcon", Gender.male, ['W'], 6)
+const Wasp = TestPlayer.createWithPositions("Wasp", Gender.female, ['C'], 6)
+const SpiderMan = TestPlayer.createWithPositions("Spider-man", Gender.male, ['C'], 8)
+const DrStrange = TestPlayer.createWithPositions("Dr Strange", Gender.male, ['W'], 8)
+const Wong = TestPlayer.createWithPositions("Wong", Gender.male, ['C'], 5)
+const BlackPanther = TestPlayer.createWithPositions("Black panther", Gender.male, ['C'], 7)
 
 const players = <Player[]>[
     ScarletWitch,
@@ -224,7 +238,7 @@ describe('main file', () => {
                 fillTeamsWithPositions(
                     [new Team()],
                     {"A": 1},
-                    [{...expectedPlayer, taken: false, positions: "A, B"}]
+                    [{...expectedPlayer, taken: false, positions: ["A", "B"]}]
                 )
             ).toEqual([expectedTeam])
         })
@@ -244,18 +258,18 @@ describe('main file', () => {
                 PepperPots
             ]
             const teamA = new Team([
-                {...CaptainMarvel, positions: [CaptainMarvel.positions as string], taken: true},
-                {...HawkEye, positions: [HawkEye.positions as string], taken: true},
-                {...Valkyrie, positions: [Valkyrie.positions as string], taken: true},
-                {...ScarletWitch, positions: [ScarletWitch.positions as string], taken: true},
-                {...PepperPots, positions: [PepperPots.positions as string], taken: true},
+                {...CaptainMarvel, positions: [CaptainMarvel.position], taken: true},
+                {...HawkEye, positions: [HawkEye.position], taken: true},
+                {...Valkyrie, positions: [Valkyrie.position], taken: true},
+                {...ScarletWitch, positions: [ScarletWitch.position], taken: true},
+                {...PepperPots, positions: [PepperPots.position], taken: true},
             ], "Team A")
             const teamB = new Team([
-                {...Hulk, positions: [Hulk.positions as string], taken: true},
-                {...IronMan, positions: [IronMan.positions as string], taken: true},
-                {...Nebula, positions: [Nebula.positions as string], taken: true},
-                {...Gamora, positions: [Gamora.positions as string], taken: true},
-                {...Drax, positions: [Drax.positions as string], taken: true},
+                {...Hulk, positions: [Hulk.position], taken: true},
+                {...IronMan, positions: [IronMan.position], taken: true},
+                {...Nebula, positions: [Nebula.position], taken: true},
+                {...Gamora, positions: [Gamora.position], taken: true},
+                {...Drax, positions: [Drax.position], taken: true},
             ], "Team B")
 
             const result = fillTeamsWithPositions(
@@ -326,13 +340,13 @@ describe('main file', () => {
                     DrStrange,
                     {...SpiderMan, taken: true},
                     {...Wong, taken: true},
-                    {...Drax, positions: [Drax.positions as string], taken: true},
+                    {...Drax, taken: true},
                 ]),
                 new Team([
                     BlackPanther,
                     Wasp,
                     {...Falcon, taken: true},
-                    {...WarMachine, positions: [WarMachine.positions as string], taken: true}
+                    {...WarMachine, taken: true}
                 ]),
             ]
             expect(result).toEqual(expected)

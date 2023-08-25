@@ -9,7 +9,8 @@ export enum Gender {
 
 export interface Player {
     score: number
-    positions: string | string[]
+    position?: string /* @deprecated position */
+    positions?: string[]
     gender: Gender
     taken?: boolean
 }
@@ -26,13 +27,15 @@ export interface TeamInt {
     name?: string
     score: number
     players: Player[]
+
     push(...players: Player[]): void;
 }
 
-export class Team implements TeamInt{
+export class Team implements TeamInt {
     name?: string
     score: number
     players: Player[]
+
     constructor(players: Player[] = [], name: string = "") {
         this.name = name
         this.players = players
@@ -65,10 +68,10 @@ export const fillTeamsWithPositions = (
     const resultTeams: TeamInt[] = [...teams]
     const positions = {...teamDefinition}
     const candidates = players.map(p => {
-        const candidatePositions = Array.isArray(p.positions)
-            ? p.positions
-            : p.positions.split(",").map(po => po.trim())
-        return {...p, positions: candidatePositions}
+        return {
+            ...p,
+            positions: p.positions || p.position?.split(",").map(po => po.trim())
+        }
     })
 
     // Prioritize the teams based on the positions
@@ -81,7 +84,7 @@ export const fillTeamsWithPositions = (
 
                 const candidatesInPosition: Player[] = candidates
                     .filter(p => !p.taken)
-                    .filter(p => p.positions.includes(pos))
+                    .filter(p => p.positions?.includes(pos))
                     .sort((pa, pb) => pa.score - pb.score)
 
                 if (candidatesInPosition.length === 0) break;
@@ -109,9 +112,7 @@ export const fillTeamsWithPositions = (
 
 export const countPosInTeam = (team: TeamInt, pos: string): number => {
     return team.players.filter(p => {
-        const positions = Array.isArray(p.positions)
-            ? p.positions
-            : (p.positions as String).split(",")
+        const positions = p.positions || (p.position as String).split(",")
         return positions.includes(pos)
     }).length
 }
@@ -134,9 +135,7 @@ export const fillTeams = (teams: TeamInt[], players: Player[], prime: number = D
 
 const sortPlayers = (players: Player[], prime: number): void => {
     players.sort((a, b) => {
-        const playerAPos: string = Array.isArray(a.positions) ? a.positions.join("") : a.positions
-        const playerBPos: string = Array.isArray(b.positions) ? b.positions.join("") : b.positions
-        return playerAPos.localeCompare(playerBPos)
+        return a.position?.localeCompare(b.position || '')
             || a.score - b.score
             || seed(a, prime) - seed(b, prime)
     })
