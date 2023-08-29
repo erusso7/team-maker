@@ -1,6 +1,5 @@
 import {
     countPosInTeam,
-    DefaultPrime,
     femaleFilter,
     fillTeams,
     fillTeamsWithPositions,
@@ -10,55 +9,41 @@ import {
     maleFilter,
     Player,
     playersAVG,
-    seed,
     sortTeamsAsc,
     Team,
     teamMedian,
-    teams,
-    teamsFilter
+    teams
 } from "../index"
 
 class TestPlayer implements Player {
     public name: string = "";
     public gender: Gender = Gender.male;
-    public position: string = "";
     public positions: string[] = [];
     public score: number = 0;
-
-    static createWithOldPosition(n: string, g: Gender, p: string, s: number): TestPlayer {
-        const t = new TestPlayer()
-        t.name = n
-        t.gender = g
-        t.position = p
-        t.positions = p.split(",").map(s => s.trim())
-        t.score = s
-        return t
-    }
 
     static createWithPositions(n: string, g: Gender, p: string[], s: number): TestPlayer {
         const t = new TestPlayer()
         t.name = n
         t.gender = g
-        t.position = (p ? p.map(s => s.trim()).at(0) : "") as string
         t.positions = p
         t.score = s
         return t
     }
 }
 
-const CaptainMarvel = TestPlayer.createWithOldPosition("Captain marvel", Gender.female, 'A', 8)
-const Hulk = TestPlayer.createWithOldPosition("Hulk", Gender.male, 'A', 6)
-const Drax = TestPlayer.createWithOldPosition("Drax", Gender.male, 'A', 3)
-const PepperPots = TestPlayer.createWithOldPosition("Pepper pots", Gender.female, 'A', 2)
-const IronMan = TestPlayer.createWithOldPosition("IronMan", Gender.male, 'D', 9)
-const HawkEye = TestPlayer.createWithOldPosition("Hawk eye", Gender.male, 'D', 5)
-const Valkyrie = TestPlayer.createWithOldPosition("Valkyrie", Gender.female, 'D', 3)
-const Nebula = TestPlayer.createWithOldPosition("Nebula", Gender.female, 'D', 1)
-const ScarletWitch = TestPlayer.createWithOldPosition("Scarlet witch", Gender.female, 'F', 10)
-const Gamora = TestPlayer.createWithOldPosition("Gamora", Gender.female, 'F', 7)
-const Rocket = TestPlayer.createWithOldPosition("Rocket", Gender.male, 'F', 4)
-const Groot = TestPlayer.createWithOldPosition("Groot", Gender.male, 'F', 2)
-const WarMachine = TestPlayer.createWithOldPosition("War machine", Gender.male, 'W', 5)
+const CaptainMarvel = TestPlayer.createWithPositions("Captain marvel", Gender.female, ['A'], 8)
+const Hulk = TestPlayer.createWithPositions("Hulk", Gender.male, ['A'], 6)
+const Drax = TestPlayer.createWithPositions("Drax", Gender.male, ['A'], 3)
+const PepperPots = TestPlayer.createWithPositions("Pepper pots", Gender.female, ['A'], 2)
+const IronMan = TestPlayer.createWithPositions("IronMan", Gender.male, ['D'], 9)
+const HawkEye = TestPlayer.createWithPositions("Hawk eye", Gender.male, ['D'], 5)
+const Valkyrie = TestPlayer.createWithPositions("Valkyrie", Gender.female, ['D'], 3)
+const Nebula = TestPlayer.createWithPositions("Nebula", Gender.female, ['D'], 1)
+const ScarletWitch = TestPlayer.createWithPositions("Scarlet witch", Gender.female, ['F'], 10)
+const Gamora = TestPlayer.createWithPositions("Gamora", Gender.female, ['F'], 7)
+const Rocket = TestPlayer.createWithPositions("Rocket", Gender.male, ['F'], 4)
+const Groot = TestPlayer.createWithPositions("Groot", Gender.male, ['F'], 2)
+const WarMachine = TestPlayer.createWithPositions("War machine", Gender.male, ['W'], 5)
 
 const Falcon = TestPlayer.createWithPositions("Falcon", Gender.male, ['W'], 6)
 const Wasp = TestPlayer.createWithPositions("Wasp", Gender.female, ['C'], 6)
@@ -68,25 +53,22 @@ const Wong = TestPlayer.createWithPositions("Wong", Gender.male, ['C'], 5)
 const BlackPanther = TestPlayer.createWithPositions("Black panther", Gender.male, ['C'], 7)
 
 const players = <Player[]>[
-    ScarletWitch,
-    HawkEye,
     Nebula,
-    Drax,
-    Gamora,
-    IronMan,
-    CaptainMarvel,
-    PepperPots,
-    Rocket,
     Groot,
+    PepperPots,
+    Drax,
     Valkyrie,
+    Rocket,
+    HawkEye,
+
     Hulk,
+    Gamora,
+    CaptainMarvel,
+    IronMan,
+    ScarletWitch,
 ].sort(() => 0.5 - Math.random());
 
 describe('main file', () => {
-    it('should return a deterministic seed', () => {
-        expect(seed({}, DefaultPrime)).toBe(8263)
-    })
-
     it('should return the median', () => {
         expect(teamMedian([])).toBe(0)
         expect(teamMedian(players)).toBe(5)
@@ -99,43 +81,42 @@ describe('main file', () => {
     describe('building teams from a player list', () => {
         it('should build based on multiple positions', () => {
             const expected = [
-                new Team([ScarletWitch, HawkEye, Nebula, Drax]),
-                new Team([Rocket, Groot, Valkyrie, Hulk]),
-                new Team([Gamora, IronMan, CaptainMarvel, PepperPots]),
+                new Team([ScarletWitch, HawkEye, Rocket, Nebula,]),
+                new Team([IronMan, Hulk, Valkyrie, PepperPots,]),
+                new Team([CaptainMarvel, Gamora, Drax, Groot,])
             ]
             expect(teams(players, 3)).toEqual(expected)
         })
 
         it('should filter less than or equal to the given limit and create 2 teams', () => {
             const expected = [
-                new Team([Groot, HawkEye, Drax]),
-                new Team([Rocket, Valkyrie, Nebula, PepperPots])
-            ]
-            expect(teamsFilter(lowFilter(5))(players, 2)).toEqual(expected)
+                new Team([Rocket, Valkyrie, Groot, Nebula,]),
+                new Team([HawkEye, Drax, PepperPots,])]
+            expect(teams(players.filter(lowFilter(5)), 2)).toEqual(expected)
         })
 
         it('should filter greater than to the given limit and create 2 teams', () => {
             const expected = [
-                new Team([ScarletWitch, CaptainMarvel]),
-                new Team([Gamora, IronMan, Hulk]),
+                new Team([ScarletWitch, Gamora, Hulk]),
+                new Team([IronMan, CaptainMarvel]),
             ]
-            expect(teamsFilter(highFilter(5))(players, 2)).toEqual(expected)
+            expect(teams(players.filter(highFilter(5)), 2)).toEqual(expected)
         })
 
         it('should filter only women and return 2 teams', () => {
             const expected = [
-                new Team([Gamora, Valkyrie, CaptainMarvel]),
-                new Team([ScarletWitch, Nebula, PepperPots]),
+                new Team([CaptainMarvel, Gamora, Nebula]),
+                new Team([ScarletWitch, Valkyrie, PepperPots]),
             ]
-            expect(teamsFilter(femaleFilter)(players, 2)).toEqual(expected)
+            expect(teams(players.filter(femaleFilter), 2)).toEqual(expected)
         })
 
         it('should filter only men and return 2 teams', () => {
             const expected = [
-                new Team([Rocket, HawkEye, Hulk]),
-                new Team([Groot, IronMan, Drax]),
+                new Team([IronMan, Rocket, Groot]),
+                new Team([Hulk, HawkEye, Drax]),
             ]
-            expect(teamsFilter(maleFilter)(players, 2)).toEqual(expected)
+            expect(teams(players.filter(maleFilter), 2)).toEqual(expected)
         })
     })
 
@@ -146,8 +127,8 @@ describe('main file', () => {
             const teamB = new Team()
 
             const expected = [
-                new Team([Gamora, Nebula, CaptainMarvel]),
-                new Team([ScarletWitch, Valkyrie, PepperPots]),
+                new Team([ScarletWitch, CaptainMarvel, PepperPots]),
+                new Team([Gamora, Nebula, Valkyrie]),
             ]
 
             const availableWomen = players
@@ -172,8 +153,8 @@ describe('main file', () => {
                 })
 
             const expected = [
-                new Team([Rocket, Drax, Groot]),
-                new Team([IronMan, Hulk, HawkEye]),
+                new Team([IronMan, Hulk, Groot]),
+                new Team([Rocket, Drax, HawkEye]),
             ]
 
             const teams = fillTeams([teamA, teamB], availableMen)
@@ -232,7 +213,6 @@ describe('main file', () => {
 
         it('should return a team with the highest player in a given position', () => {
             const expectedPlayer = {
-                taken: true,
                 score: 100,
                 position: "A, B",
                 positions: ["A", "B"],
@@ -244,7 +224,7 @@ describe('main file', () => {
                 fillTeamsWithPositions(
                     [new Team()],
                     {"A": 1},
-                    [{...expectedPlayer, taken: false, position: "A, B", positions: ["A", "B"]}]
+                    [expectedPlayer]
                 )
             ).toEqual([expectedTeam])
         })
@@ -264,18 +244,18 @@ describe('main file', () => {
                 PepperPots
             ]
             const teamA = new Team([
-                {...CaptainMarvel, positions: [CaptainMarvel.position], taken: true},
-                {...HawkEye, positions: [HawkEye.position], taken: true},
-                {...Valkyrie, positions: [Valkyrie.position], taken: true},
-                {...ScarletWitch, positions: [ScarletWitch.position], taken: true},
-                {...PepperPots, positions: [PepperPots.position], taken: true},
+                CaptainMarvel,
+                HawkEye,
+                Valkyrie,
+                ScarletWitch,
+                PepperPots,
             ], "Team A")
             const teamB = new Team([
-                {...Hulk, positions: [Hulk.position], taken: true},
-                {...IronMan, positions: [IronMan.position], taken: true},
-                {...Nebula, positions: [Nebula.position], taken: true},
-                {...Gamora, positions: [Gamora.position], taken: true},
-                {...Drax, positions: [Drax.position], taken: true},
+                Hulk,
+                IronMan,
+                Nebula,
+                Gamora,
+                Drax,
             ], "Team B")
 
             const result = fillTeamsWithPositions(
@@ -302,16 +282,8 @@ describe('main file', () => {
 
             const players = [CM, H, D, BP, SP, W,]
 
-            const teamA = new Team([
-                {...CM, taken: true},
-                {...BP, taken: true},
-                {...D, taken: true}
-            ], "Team A")
-            const teamB = new Team([
-                {...H, taken: true},
-                {...SP, taken: true},
-                {...W, taken: true}
-            ], "Team B")
+            const teamA = new Team([CM, BP, D], "Team A")
+            const teamB = new Team([H, SP, W], "Team B")
 
             const result = fillTeamsWithPositions(
                 [new Team([], teamA.name), new Team([], teamB.name)],
@@ -332,28 +304,12 @@ describe('main file', () => {
             const teamA = new Team([BlackPanther, Wasp])
             const teamB = new Team([DrStrange])
 
-            const players = [
-                Falcon,
-                SpiderMan,
-                Wong,
-                WarMachine,
-                Drax
-            ]
+            const players = [Falcon, SpiderMan, Wong, WarMachine, Drax]
 
             const result = fillTeamsWithPositions([teamA, teamB], definition, players)
             const expected = [
-                new Team([
-                    DrStrange,
-                    {...SpiderMan, taken: true},
-                    {...Wong, taken: true},
-                    {...Drax, taken: true},
-                ]),
-                new Team([
-                    BlackPanther,
-                    Wasp,
-                    {...Falcon, taken: true},
-                    {...WarMachine, taken: true}
-                ]),
+                new Team([DrStrange, SpiderMan, Wong, Drax]),
+                new Team([BlackPanther, Wasp, Falcon, WarMachine]),
             ]
             expect(result).toEqual(expected)
         })

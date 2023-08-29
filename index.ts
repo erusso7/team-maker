@@ -1,7 +1,5 @@
 let hash = require('object-hash')
 
-export const DefaultPrime = 13127
-
 export enum Gender {
     male = 'male',
     female = 'female'
@@ -9,19 +7,13 @@ export enum Gender {
 
 export interface Player {
     score: number
-    position: string /* @deprecated position */
     positions: string[]
     gender: Gender
     taken?: boolean
 }
 
-export const seed = (player: any, prime: number): number => parseInt(hash.MD5(player), 16) % prime
-
-const asc = (prime: number = DefaultPrime) => {
-    return (a: Player, b: Player) => {
-        return a.score - b.score || seed(a, prime) - seed(b, prime)
-    }
-}
+const playerHash = (p: Player): number => parseInt(hash.MD5(p), 16)
+const asc = (a: Player, b: Player): number => a.score - b.score || playerHash(a) - playerHash(b)
 
 export interface TeamInt {
     name?: string
@@ -48,13 +40,13 @@ export class Team implements TeamInt {
     }
 }
 
-export const teams = (players: Player[], requiredTeams: number, prime: number = DefaultPrime): TeamInt[] => {
+export const teams = (players: Player[], requiredTeams: number): TeamInt[] => {
     const result = new Array<TeamInt>(requiredTeams)
     for (let i = 0; i < requiredTeams; i++) {
         result[i] = new Team()
     }
 
-    return fillTeams(result, players, prime)
+    return fillTeams(result, players)
 }
 
 export const fillTeamsWithPositions = (
@@ -65,21 +57,16 @@ export const fillTeamsWithPositions = (
     if (teams.length === 0) return []
     if (players.length === 0) return teams
 
-    const resultTeams: TeamInt[] = [...teams]
+    const structuredTeams: TeamInt[] = [...teams]
     const positions = {...teamDefinition}
-    const candidates = players.map(p => {
-        return {
-            ...p,
-            positions: p.positions || p.position?.split(",").map(po => po.trim())
-        }
-    })
+    const candidates = players.map(p => p)
 
     // Prioritize the teams based on the positions
     for (const pos in positions) {
         for (let requirePlayers = positions[pos]; requirePlayers > 0; requirePlayers--) {
-            sortTeamsAsc(resultTeams)
-            for (const t in resultTeams) {
-                const posCovered = positions[pos] - countPosInTeam(resultTeams[t], pos) <= 0
+            sortTeamsAsc(structuredTeams)
+            for (const t in structuredTeams) {
+                const posCovered = positions[pos] - countPosInTeam(structuredTeams[t], pos) <= 0
                 if (posCovered) continue;
 
                 const candidatesInPosition: Player[] = candidates
@@ -90,55 +77,45 @@ export const fillTeamsWithPositions = (
                 if (candidatesInPosition.length === 0) break;
                 const selected = candidatesInPosition.pop() as Player
                 selected.taken = true
-                resultTeams[t].push(selected)
+                structuredTeams[t].push(selected)
             }
         }
     }
 
-    //Sort remaining players in descending order
-    const remainingCandidates = candidates
-        .filter(c => !c.taken)
-        .sort((pa, pb) => pb.score - pa.score)
+    // Fill the teams with the remaining candidates
+    const result = fillTeams(
+        structuredTeams,
+        candidates.filter(c => !c.taken)
+    )
 
-    // Fill the teams with the remaining players
-    for (const candidate of remainingCandidates) {
-        sortTeamsAsc(resultTeams)
-        candidate.taken = true
-        resultTeams[0].push(candidate)
-    }
-
-    return resultTeams
+    // Remove player.taken property
+    return result.map(t => {
+        return {
+            ...t, players: t.players.map(p => {
+                delete p.taken
+                return p
+            })
+        }
+    })
 }
 
 export const countPosInTeam = (team: TeamInt, pos: string): number => {
-    return team.players.filter(p => {
-        const positions = p.positions || (p.position as String).split(",")
-        return positions.includes(pos)
-    }).length
+    return team.players.filter(p => p.positions.includes(pos)).length
 }
 
-export const fillTeams = (teams: TeamInt[], players: Player[], prime: number = DefaultPrime): TeamInt[] => {
+export const fillTeams = (teams: TeamInt[], players: Player[]): TeamInt[] => {
     const result = teams.map(t => t)
     // Sort by position and descending by score
     const availablePlayers = players.map(p => p)
-    sortPlayers(availablePlayers, prime)
+    availablePlayers.sort(asc)
 
-    const lastTeamIdx = result.length - 1
     while (availablePlayers.length) {
-        sortTeams(result)
+        sortTeamsAsc(result)
         const p = availablePlayers.pop() as Player
-        result[lastTeamIdx].push(p)
+        result[0].push(p)
     }
 
     return result
-}
-
-const sortPlayers = (players: Player[], prime: number): void => {
-    players.sort((a, b) => {
-        return a.position.localeCompare(b.position)
-            || a.score - b.score
-            || seed(a, prime) - seed(b, prime)
-    })
 }
 
 export const sortTeamsAsc = (teams: TeamInt[]): void => {
@@ -146,22 +123,11 @@ export const sortTeamsAsc = (teams: TeamInt[]): void => {
         return a.players.length - b.players.length || a.score - b.score
     })
 }
-const sortTeams = (teams: TeamInt[]): void => {
-    teams.sort((a, b) => {
-        return b.players.length - a.players.length || b.score - a.score
-    })
-}
 
 export const femaleFilter = (p: Player) => p.gender === Gender.female
 export const maleFilter = (p: Player) => p.gender === Gender.male
 export const lowFilter = (limit: number) => (p: Player) => p.score <= limit
 export const highFilter = (limit: number) => (p: Player) => p.score > limit
-
-export const teamsFilter = (filterFunc: (p: Player) => {}) => {
-    return (attendees: Player[], numTeams: number, prime: number = DefaultPrime): TeamInt[] => {
-        return teams(attendees.filter(filterFunc), numTeams, prime)
-    }
-}
 
 export const playersAVG = (players: Player[]) => {
     if (players.length === 0) {
@@ -176,7 +142,7 @@ export const teamMedian = (team: Player[]) => {
     if (copy.length === 0) {
         return 0
     }
-    copy.sort(asc(1))
+    copy.sort(asc)
     const midIdx = Math.floor(copy.length / 2)
     return Math.floor(copy[midIdx].score)
 }

@@ -8,9 +8,9 @@
   "author": "Ezequiel Russo <ezequiel.rube@gmail.com>",
   "license": "MIT",
   "scripts": {
+    "prepublish": "rm -rf && tsc",
     "test": "jest"
   },
-  "prepublish": "rm -rf && tsc",
   "dependencies": {
     "object-hash": "^3.0.0"
   },
