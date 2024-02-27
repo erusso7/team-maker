@@ -63,13 +63,28 @@ const teamsCompare = (a: Team, b: Team): number => {
     return 0
 }
 
+const fixDefinition = (definition: Position[], players: Player[]): (Position[]) => {
+    players.forEach(pl => {
+        pl.positions.forEach(po => {
+            const availablePos = definition.map(d => d.pos)
+            if (availablePos.includes(po)) {
+                return
+            }
+            definition.push({pos: po, num: 1})
+        })
+    })
+    return definition
+}
+
 export const fillTeams = (teams: Team[], players: Player[], definition: Position[]): (Team[]) => {
     let availablePlayers = players.map(p => p).sort((a, b): number => {
         return b.score - a.score
     })
 
+    const teamDef = fixDefinition(definition, players)
+
     while (availablePlayers) {
-        for (const def of definition) {
+        for (const def of teamDef) {
             for (let i = 0; i < def.num; i++) {
                 for (const team of teams) {
                     if (availablePlayers.length === 0) {
@@ -84,7 +99,7 @@ export const fillTeams = (teams: Team[], players: Player[], definition: Position
                 teams.sort(teamsCompare)
             }
         }
-        definition.reverse()
+        teamDef.reverse()
     }
     return teams
 }

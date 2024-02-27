@@ -1,13 +1,13 @@
 import {fillTeams, Player, Position, Team} from "../index";
 
-const CaptainMarvel = {name: "Captain marvel", positions: ['A'], score: 8}
-const Hulk = {name: "Hulk", positions: ['A'], score: 6}
-const Drax = {name: "Drax", positions: ['A'], score: 3}
-const PepperPots = {name: "Pepper pots", positions: ['A'], score: 2}
-const IronMan = {name: "IronMan", positions: ['D'], score: 9}
-const HawkEye = {name: "Hawk eye", positions: ['D'], score: 5}
-const Valkyrie = {name: "Valkyrie", positions: ['D'], score: 3}
-const Nebula = {name: "Nebula", positions: ['D'], score: 1}
+const CaptainMarvel = {name: "Captain marvel", positions: ['FB'], score: 8}
+const Hulk = {name: "Hulk", positions: ['FB'], score: 6}
+const Drax = {name: "Drax", positions: ['FB'], score: 3}
+const PepperPots = {name: "Pepper pots", positions: ['FB'], score: 2}
+const IronMan = {name: "IronMan", positions: ['F'], score: 9}
+const HawkEye = {name: "Hawk eye", positions: ['F'], score: 5}
+const Valkyrie = {name: "Valkyrie", positions: ['F'], score: 3}
+const Nebula = {name: "Nebula", positions: ['F'], score: 1}
 const ScarletWitch = {name: "Scarlet witch", positions: ['F'], score: 10}
 const Gamora = {name: "Gamora", positions: ['F'], score: 7}
 const Rocket = {name: "Rocket", positions: ['F'], score: 4}
@@ -42,23 +42,38 @@ const players: Player[] = [
 ]
 
 const definition: Position[] = [
-    {pos: "P", num: 1},
+    {pos: "FB", num: 1},
     {pos: "C", num: 1},
-    {pos: "A", num: 2},
-    {pos: "D", num: 2},
+    {pos: "F", num: 2},
+    {pos: "W", num: 2},
 ]
 
 it("test new teams", () => {
     const teams = [new Team(), new Team()]
     fillTeams(teams, players, definition)
 
-    expect(teams[0].players().get("P")).toEqual([Groot])
+    expect(teams[0].players().get("FB")).toEqual([CaptainMarvel])
     expect(teams[0].players().get("C")).toEqual([BlackPanther])
-    expect(teams[0].players().get("A")).toEqual([CaptainMarvel, PepperPots, Gamora, ScarletWitch])
-    expect(teams[0].players().get("D")).toEqual([HawkEye, Valkyrie, Wong, Wasp])
+    expect(teams[0].players().get("F")).toEqual([IronMan, HawkEye, Rocket, Wasp])
+    expect(teams[0].players().get("W")).toEqual([DrStrange, Nebula, Groot, Valkyrie])
 
-    expect(teams[1].players().get("P")).toEqual([Nebula])
+    expect(teams[1].players().get("FB")).toEqual([Hulk])
     expect(teams[1].players().get("C")).toEqual([SpiderMan])
-    expect(teams[1].players().get("A")).toEqual([Hulk, Drax, DrStrange])
-    expect(teams[1].players().get("D")).toEqual([IronMan, Rocket, WarMachine, Falcon])
+    expect(teams[1].players().get("F")).toEqual([ScarletWitch, Gamora, Wong])
+    expect(teams[1].players().get("W")).toEqual([Falcon, WarMachine, PepperPots, Drax])
+})
+
+it("test fix definition", () => {
+    const teams = [new Team(), new Team()]
+    fillTeams(teams, players, [])
+
+    expect(teams[0].players().get("FB")).toEqual([Hulk, PepperPots, Groot])
+    expect(teams[0].players().get("F")).toEqual([ScarletWitch, HawkEye, Rocket])
+    expect(teams[0].players().get("W")).toEqual([DrStrange, WarMachine])
+    expect(teams[0].players().get("C")).toEqual([BlackPanther, Wong])
+
+    expect(teams[1].players().get("FB")).toEqual([CaptainMarvel, Drax, Valkyrie])
+    expect(teams[1].players().get("F")).toEqual([IronMan, Gamora])
+    expect(teams[1].players().get("W")).toEqual([Falcon, Nebula])
+    expect(teams[1].players().get("C")).toEqual([SpiderMan, Wasp])
 })
