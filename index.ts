@@ -1,148 +1,90 @@
-let hash = require('object-hash')
-
-export enum Gender {
-    male = 'male',
-    female = 'female'
-}
-
 export interface Player {
-    score: number
-    positions: string[]
-    gender: Gender
-    taken?: boolean
+    name: string;
+    score: number;
+    positions: string[];
 }
 
-const playerHash = (p: Player): number => parseInt(hash.MD5(p), 16)
-const asc = (a: Player, b: Player): number => a.score - b.score || playerHash(a) - playerHash(b)
-
-export interface TeamInt {
-    name?: string
-    score: number
-    players: Player[]
-
-    push(...players: Player[]): void;
+export interface Position {
+    pos: string,
+    num: number
 }
 
-export class Team implements TeamInt {
-    name?: string
-    score: number
-    players: Player[]
+export class Team {
+    private _count: number = 0;
+    private _score: number = 0;
+    private _players: Player[] = [];
+    private _playersByPos = new Map<string, Player[]>();
 
-    constructor(players: Player[] = [], name: string = "") {
-        this.name = name
-        this.players = players
-        this.score = playersAVG(this.players)
+    players(): Map<string, Player[]> {
+        return this._playersByPos
     }
 
-    push(...players: Player[]): void {
-        this.players.push(...players)
-        this.score = playersAVG(this.players)
+    addPlayer(pos: string, player: Player) {
+        const players = this._playersByPos.get(pos) || []
+        players.push(player)
+        this._playersByPos.set(pos, players)
+
+        this._players.push(player)
+        this._players.sort((a, b): number => {
+            return a.score - b.score
+        })
+
+        this._score += player.score
+        this._count++
+    }
+
+    avgScore(): number {
+        return this._score / this._count
+    }
+
+    medScore(): number {
+        const medIdx = Math.floor(this._count / 2)
+        return this._players[medIdx].score
+    }
+
+    count(): number {
+        return this._count
     }
 }
 
-export const teams = (players: Player[], requiredTeams: number): TeamInt[] => {
-    const result = new Array<TeamInt>(requiredTeams)
-    for (let i = 0; i < requiredTeams; i++) {
-        result[i] = new Team()
+const teamsCompare = (a: Team, b: Team): number => {
+    const diffByCount = a.count() - b.count()
+    if (diffByCount !== 0) {
+        return diffByCount
     }
-
-    return fillTeams(result, players)
+    const diffByAvg = a.avgScore() - b.avgScore()
+    if (diffByAvg !== 0) {
+        return diffByAvg
+    }
+    const diffByMed = a.medScore() - b.medScore()
+    if (diffByMed !== 0) {
+        return diffByMed
+    }
+    return 0
 }
 
-export const fillTeamsWithPositions = (
-    teams: TeamInt[],
-    teamDefinition: { [pos: string]: number },
-    players: Player[]
-): TeamInt[] => {
-    if (teams.length === 0) return []
-    if (players.length === 0) return teams
+export const fillTeams = (teams: Team[], players: Player[], definition: Position[]): (Team[]) => {
+    let availablePlayers = players.map(p => p).sort((a, b): number => {
+        return b.score - a.score
+    })
 
-    const structuredTeams: TeamInt[] = [...teams]
-    const positions = {...teamDefinition}
-    const candidates = players.map(p => p)
-
-    // Prioritize the teams based on the positions
-    for (const pos in positions) {
-        for (let requirePlayers = positions[pos]; requirePlayers > 0; requirePlayers--) {
-            sortTeamsAsc(structuredTeams)
-            for (const t in structuredTeams) {
-                const posCovered = positions[pos] - countPosInTeam(structuredTeams[t], pos) <= 0
-                if (posCovered) continue;
-
-                const candidatesInPosition: Player[] = candidates
-                    .filter(p => !p.taken)
-                    .filter(p => p.positions?.includes(pos))
-                    .sort((pa, pb) => pa.score - pb.score)
-
-                if (candidatesInPosition.length === 0) break;
-                const selected = candidatesInPosition.pop() as Player
-                selected.taken = true
-                structuredTeams[t].push(selected)
+    while (availablePlayers) {
+        for (const def of definition) {
+            for (let i = 0; i < def.num; i++) {
+                for (const team of teams) {
+                    if (availablePlayers.length === 0) {
+                        return teams
+                    }
+                    const playerIdx = availablePlayers.findIndex(p => {
+                        return p.positions.includes(def.pos)
+                    })
+                    const p = availablePlayers.splice(playerIdx, 1).pop() as Player
+                    team.addPlayer(def.pos, p)
+                }
+                teams.sort(teamsCompare)
             }
         }
+        definition.reverse()
     }
-
-    // Fill the teams with the remaining candidates
-    const result = fillTeams(
-        structuredTeams,
-        candidates.filter(c => !c.taken)
-    )
-
-    // Remove player.taken property
-    return result.map(t => {
-        return {
-            ...t, players: t.players.map(p => {
-                delete p.taken
-                return p
-            })
-        }
-    })
-}
-
-export const countPosInTeam = (team: TeamInt, pos: string): number => {
-    return team.players.filter(p => p.positions.includes(pos)).length
-}
-
-export const fillTeams = (teams: TeamInt[], players: Player[]): TeamInt[] => {
-    const result = teams.map(t => t)
-    // Sort by position and descending by score
-    const availablePlayers = players.map(p => p)
-    availablePlayers.sort(asc)
-
-    while (availablePlayers.length) {
-        sortTeamsAsc(result)
-        const p = availablePlayers.pop() as Player
-        result[0].push(p)
-    }
-
-    return result
-}
-
-export const sortTeamsAsc = (teams: TeamInt[]): void => {
-    teams.sort((a, b) => {
-        return a.players.length - b.players.length || a.score - b.score
-    })
-}
-
-export const femaleFilter = (p: Player) => p.gender === Gender.female
-export const maleFilter = (p: Player) => p.gender === Gender.male
-export const lowFilter = (limit: number) => (p: Player) => p.score <= limit
-export const highFilter = (limit: number) => (p: Player) => p.score > limit
-
-export const playersAVG = (players: Player[]) => {
-    if (players.length === 0) {
-        return 0
-    }
-    const avg = players.reduce((acc, p) => acc + p.score, 0) / players.length
-    return Math.round(avg * 100) / 100
-}
-
-export const teamMedian = (team: Player[]) => {
-    const copy = team.map(p => p)
-    if (copy.length === 0) {
-        return 0
-    }
-    copy.sort(asc)
-    const midIdx = Math.floor(copy.length / 2)
-    return Math.floor(copy[midIdx].score)
+    return teams
 }
