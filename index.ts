@@ -65,23 +65,28 @@ const teamsCompare = (a: Team, b: Team): number => {
 
 const fixDefinition = (definition: Position[], players: Player[]): (Position[]) => {
     players.forEach(pl => {
-        pl.positions.forEach(po => {
+        pl.positions.forEach(pos => {
             const availablePos = definition.map(d => d.pos)
-            if (availablePos.includes(po)) {
+            if (pos === "" || availablePos.includes(pos)) {
                 return
             }
-            definition.push({pos: po, num: 1})
+            definition.push({pos, num: 1})
         })
     })
     return definition
 }
 
 export const fillTeams = (teams: Team[], players: Player[], definition: Position[]): (Team[]) => {
-    let availablePlayers = players.map(p => p).sort((a, b): number => {
+    const teamDef = fixDefinition(definition, players)
+    const allPositions = teamDef.map(d => d.pos)
+    let availablePlayers = players.map(p => {
+        if (p.positions.length === 0) {
+            p.positions = allPositions
+        }
+        return p
+    }).sort((a, b): number => {
         return b.score - a.score
     })
-
-    const teamDef = fixDefinition(definition, players)
 
     while (availablePlayers) {
         for (const def of teamDef) {
@@ -93,6 +98,9 @@ export const fillTeams = (teams: Team[], players: Player[], definition: Position
                     const playerIdx = availablePlayers.findIndex(p => {
                         return p.positions.includes(def.pos)
                     })
+                    if (playerIdx < 0){
+                        break
+                    }
                     const p = availablePlayers.splice(playerIdx, 1).pop() as Player
                     team.addPlayer(def.pos, p)
                 }
