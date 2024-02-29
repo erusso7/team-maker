@@ -52,15 +52,15 @@ it("test new teams", () => {
     const teams = [new Team(), new Team()]
     fillTeams(teams, players, definition)
 
-    expect(teams[0].players().get("FB")).toEqual([CaptainMarvel])
-    expect(teams[0].players().get("C")).toEqual([BlackPanther])
-    expect(teams[0].players().get("F")).toEqual([IronMan, HawkEye, Rocket, Wasp])
-    expect(teams[0].players().get("W")).toEqual([DrStrange, Nebula, Groot, Valkyrie])
+    expect(teams[0].players().get("FB")).toEqual([CaptainMarvel,Drax])
+    expect(teams[0].players().get("C")).toEqual([BlackPanther,Wasp])
+    expect(teams[0].players().get("F")).toEqual([IronMan, HawkEye, Rocket, Groot])
+    expect(teams[0].players().get("W")).toEqual([DrStrange, Nebula])
 
-    expect(teams[1].players().get("FB")).toEqual([Hulk])
-    expect(teams[1].players().get("C")).toEqual([SpiderMan])
-    expect(teams[1].players().get("F")).toEqual([ScarletWitch, Gamora, Wong])
-    expect(teams[1].players().get("W")).toEqual([Falcon, WarMachine, PepperPots, Drax])
+    expect(teams[1].players().get("FB")).toEqual([Hulk, PepperPots])
+    expect(teams[1].players().get("C")).toEqual([SpiderMan, Wong])
+    expect(teams[1].players().get("F")).toEqual([ScarletWitch, Gamora, Valkyrie])
+    expect(teams[1].players().get("W")).toEqual([Falcon, WarMachine])
 })
 
 it("test fix definition", () => {
@@ -68,12 +68,12 @@ it("test fix definition", () => {
     fillTeams(teams, players, [])
 
     expect(teams[0].players().get("FB")).toEqual([Hulk, PepperPots, Groot])
-    expect(teams[0].players().get("F")).toEqual([ScarletWitch, HawkEye, Rocket])
-    expect(teams[0].players().get("W")).toEqual([DrStrange, WarMachine])
-    expect(teams[0].players().get("C")).toEqual([BlackPanther, Wong])
+    expect(teams[0].players().get("F")).toEqual([ScarletWitch, Gamora, Rocket])
+    expect(teams[0].players().get("W")).toEqual([DrStrange, Nebula])
+    expect(teams[0].players().get("C")).toEqual([BlackPanther, Wasp])
 
     expect(teams[1].players().get("FB")).toEqual([CaptainMarvel, Drax, Valkyrie])
-    expect(teams[1].players().get("F")).toEqual([IronMan, Gamora])
-    expect(teams[1].players().get("W")).toEqual([Falcon, Nebula])
-    expect(teams[1].players().get("C")).toEqual([SpiderMan, Wasp])
+    expect(teams[1].players().get("F")).toEqual([IronMan, HawkEye])
+    expect(teams[1].players().get("W")).toEqual([Falcon, WarMachine])
+    expect(teams[1].players().get("C")).toEqual([SpiderMan, Wong])
 })

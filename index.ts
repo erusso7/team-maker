@@ -99,7 +99,6 @@ export const fillTeams = (teams: Team[], players: Player[], definition: Position
                 teams.sort(teamsCompare)
             }
         }
-        teamDef.reverse()
     }
     return teams
 }
