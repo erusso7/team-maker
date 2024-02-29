@@ -75,18 +75,21 @@ const fixDefinition = (definition: Position[], players: Player[]): (Position[]) 
     })
     return definition
 }
-
-export const fillTeams = (teams: Team[], players: Player[], definition: Position[]): (Team[]) => {
-    const teamDef = fixDefinition(definition, players)
-    const allPositions = teamDef.map(d => d.pos)
-    let availablePlayers = players.map(p => {
-        if (p.positions.length === 0) {
+const fixPlayers = (allPositions: string[], players: Player[]) => {
+    return players.map(p => {
+        if (p.positions.filter(pos => pos !== "").length === 0) {
             p.positions = allPositions
         }
         return p
     }).sort((a, b): number => {
         return b.score - a.score
     })
+}
+
+export const fillTeams = (teams: Team[], players: Player[], definition: Position[]): (Team[]) => {
+    const teamDef = fixDefinition(definition, players)
+    const allPositions = teamDef.map(d => d.pos)
+    let availablePlayers = fixPlayers(allPositions, players)
 
     while (availablePlayers) {
         for (const def of teamDef) {
@@ -98,7 +101,7 @@ export const fillTeams = (teams: Team[], players: Player[], definition: Position
                     const playerIdx = availablePlayers.findIndex(p => {
                         return p.positions.includes(def.pos)
                     })
-                    if (playerIdx < 0){
+                    if (playerIdx < 0) {
                         break
                     }
                     const p = availablePlayers.splice(playerIdx, 1).pop() as Player
